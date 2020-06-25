@@ -1,0 +1,4 @@
+{
+  "base_url": "http://frozen-mountain-01021.herokuapp.com/graphql",
+  "api_base_url": "http://frozen-mountain-01021.herokuapp.com/api/auth/"
+}

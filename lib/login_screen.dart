@@ -1,6 +1,6 @@
+import 'package:estow_app/models/usuario.dart';
 import 'package:estow_app/signup_screen.dart';
 import 'package:flutter/material.dart';
-import 'package:estow_app/model/user.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -40,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
             )
           ],
         ),
-        body: ScopedModelDescendant<User>(
+        body: ScopedModelDescendant<Usuario>(
           builder: (context, child, model){
             if(model.isLoading)
               return Center(child: CircularProgressIndicator(),);

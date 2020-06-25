@@ -1,6 +1,6 @@
 import 'package:estow_app/app_theme.dart';
 import 'package:flutter/material.dart';
-import 'package:estow_app/model/user.dart';
+import 'package:estow_app/models/usuario.dart';
 import 'package:scoped_model/scoped_model.dart';
 import '../login_screen.dart';
 
@@ -41,11 +41,11 @@ class _HomeDrawerState extends State<HomeDrawer> {
         labelName: 'Empresas',
         icon: Icon(Icons.business),
       ),
-      DrawerList(
+     /* DrawerList(
         index: DrawerIndex.Invite,
         labelName: 'Enviar Convite',
         icon: Icon(Icons.group),
-      ),
+      ),*/
 //      DrawerList(
 //        index: DrawerIndex.Share,
 //        labelName: 'Avaliar App',
@@ -70,7 +70,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
     return Scaffold(
       backgroundColor: AppTheme.notWhite.withOpacity(0.5),
 
-      body: ScopedModelDescendant<User>(
+      body: ScopedModelDescendant<Usuario>(
           builder: (context, child, model) {
             return Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -125,7 +125,7 @@ class _HomeDrawerState extends State<HomeDrawer> {
                         Padding(
                           padding: const EdgeInsets.only(top: 8, left: 4),
                           child: Text(
-                            model.isLoggedIn() ? 'Marcelo Moura' : "",
+                            model.isLoggedIn() ? model.currentUser.user.name : "",
                             style: TextStyle(
                               fontWeight: FontWeight.w600,
                               color: AppTheme.grey,

@@ -1,5 +1,5 @@
-import 'package:estow_app/business/design_course_app_theme.dart';
-import 'package:estow_app/business/models/business.dart';
+import 'package:estow_app/design_course/design_course_app_theme.dart';
+import 'package:estow_app/design_course/models/category.dart';
 import 'package:estow_app/main.dart';
 import 'package:flutter/material.dart';
 
@@ -43,12 +43,12 @@ class _BusinessListViewState extends State<BusinessListView>
               return ListView.builder(
                 padding: const EdgeInsets.only(
                     top: 0, bottom: 0, right: 16, left: 16),
-                itemCount: Business.businessList.length,
+                itemCount: Category.categoryList.length,
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (BuildContext context, int index) {
-                  final int count = Business.businessList.length > 10
+                  final int count = Category.categoryList.length > 10
                       ? 10
-                      : Business.businessList.length;
+                      : Category.categoryList.length;
                   final Animation<double> animation =
                   Tween<double>(begin: 0.0, end: 1.0).animate(
                       CurvedAnimation(
@@ -57,12 +57,12 @@ class _BusinessListViewState extends State<BusinessListView>
                               curve: Curves.fastOutSlowIn)));
                   animationController.forward();
 
-                  return BusinessView(
-                    business: Business.businessList[index],
+                  return CategoryView(
+                    category: Category.categoryList[index],
                     animation: animation,
                     animationController: animationController,
                     callback: () {
-                      widget.callBack();
+                      widget.callBack(this);
                     },
                   );
                 },
@@ -75,17 +75,17 @@ class _BusinessListViewState extends State<BusinessListView>
   }
 }
 
-class BusinessView extends StatelessWidget {
-  const BusinessView(
+class CategoryView extends StatelessWidget {
+  const CategoryView(
       {Key key,
-        this.business,
+        this.category,
         this.animationController,
         this.animation,
         this.callback})
       : super(key: key);
 
   final VoidCallback callback;
-  final Business business;
+  final Category category;
   final AnimationController animationController;
   final Animation<dynamic> animation;
 
@@ -134,7 +134,7 @@ class BusinessView extends StatelessWidget {
                                             padding:
                                             const EdgeInsets.only(top: 16),
                                             child: Text(
-                                              business.name,
+                                              category.title,
                                               textAlign: TextAlign.left,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.w600,
@@ -159,7 +159,7 @@ class BusinessView extends StatelessWidget {
                                               CrossAxisAlignment.center,
                                               children: <Widget>[
                                                 Text(
-                                                  '${business.countMembers} membros',
+                                                  '${category.lessonCount} lesson',
                                                   textAlign: TextAlign.left,
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.w200,
@@ -173,7 +173,7 @@ class BusinessView extends StatelessWidget {
                                                   child: Row(
                                                     children: <Widget>[
                                                       Text(
-                                                        '${business.rating}',
+                                                        '${category.rating}',
                                                         textAlign:
                                                         TextAlign.left,
                                                         style: TextStyle(
@@ -210,7 +210,7 @@ class BusinessView extends StatelessWidget {
                                               CrossAxisAlignment.start,
                                               children: <Widget>[
                                                 Text(
-                                                  '${business.businessType}',
+                                                  '\$${category.money}',
                                                   textAlign: TextAlign.left,
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.w600,
@@ -266,7 +266,7 @@ class BusinessView extends StatelessWidget {
                               const BorderRadius.all(Radius.circular(16.0)),
                               child: AspectRatio(
                                   aspectRatio: 1.0,
-                                  child: Image.asset(business.imagePath)),
+                                  child: Image.asset(category.imagePath)),
                             )
                           ],
                         ),

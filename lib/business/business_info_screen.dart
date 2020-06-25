@@ -1,12 +1,20 @@
-import 'package:estow_app/business/components/invite_form.dart';
+import 'package:estow_app/business/models/business_model.dart';
 import 'package:estow_app/business/scale_list_view.dart';
+import 'package:estow_app/models/business.dart';
 import 'package:estow_app/scales/scale_form.dart';
-import 'package:estow_app/business/models/category.dart';
 import 'package:flutter/material.dart';
+import 'package:global_configuration/global_configuration.dart';
 import 'business_form.dart';
 import 'design_course_app_theme.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class BusinessInfoScreen extends StatefulWidget {
+  final Company company;
+
+  const BusinessInfoScreen(this.company);
+
   @override
   _BusinessInfoScreenState createState() => _BusinessInfoScreenState();
 }
@@ -15,6 +23,9 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
     with TickerProviderStateMixin {
   final double infoHeight = 364.0;
 
+
+  String baseUrl = GlobalConfiguration().getString('base_url');
+
   AnimationController animationController;
   Animation<double> animation;
   double opacity1 = 0.0;
@@ -22,9 +33,14 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
   double opacity3 = 0.0;
 
   final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _containerKey = GlobalKey<ScaffoldState>();
+
+  BusinessModel businessModel = BusinessModel();
 
   @override
   void initState() {
+
     animationController = AnimationController(
         duration: const Duration(milliseconds: 1000), vsync: this);
     animation = Tween<double>(begin: 0.0, end: 1.0).animate(CurvedAnimation(
@@ -32,7 +48,10 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
         curve: Interval(0, 1.0, curve: Curves.fastOutSlowIn)));
     setData();
     super.initState();
-    print(Category.categoryList);
+
+
+    //businessModel.getBusiness();
+
   }
 
   Future<void> setData() async {
@@ -49,6 +68,8 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
     setState(() {
       opacity3 = 1.0;
     });
+
+
   }
 
   @override
@@ -57,6 +78,7 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
         (MediaQuery.of(context).size.width / 1.2) +
         24.0;
     return Container(
+      key: _containerKey,
       color: DesignCourseAppTheme.nearlyWhite,
       child: Scaffold(
         backgroundColor: Colors.transparent,
@@ -71,7 +93,7 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
                     aspectRatio: 1.2,
                     child: ListView.builder(
                       padding: EdgeInsets.all(10.0),
-                      itemCount: Category.categoryList.length,
+                      itemCount: widget.company.users.length,
                       itemBuilder: (context, index) {
                         return _memberCard(context, index);
                       },
@@ -116,7 +138,7 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
                             padding: const EdgeInsets.only(
                                 top: 32.0, left: 18, right: 16),
                             child: Text(
-                              'São Miguel',
+                              widget.company.name,
                               textAlign: TextAlign.left,
                               style: TextStyle(
                                 fontWeight: FontWeight.w600,
@@ -134,7 +156,7 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
                               crossAxisAlignment: CrossAxisAlignment.center,
                               children: <Widget>[
                                 Text(
-                                  "3001-1000",
+                                  widget.company.cnpj,
                                   textAlign: TextAlign.left,
                                   style: TextStyle(
                                     fontWeight: FontWeight.w200,
@@ -171,6 +193,7 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
                             duration: const Duration(milliseconds: 500),
                             opacity: opacity1,
                             child: ScaleListView(
+                              company: widget.company,
                               callBack: () {
                                 moveTo();
                               },
@@ -400,6 +423,7 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
                   top: -40.0,
                   child: InkResponse(
                     onTap: () {
+
                       Navigator.of(context).pop();
                     },
                     child: CircleAvatar(
@@ -413,16 +437,13 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
+
                       Padding(
                         padding: EdgeInsets.all(8.0),
                         child: TextFormField(
-                          decoration: InputDecoration(hintText: "Nome"),
-                        ),
-                      ),
-                      Padding(
-                        padding: EdgeInsets.all(8.0),
-                        child: TextFormField(
+                          controller: _emailController,
                           decoration: InputDecoration(hintText: "e-mail"),
+                          keyboardType: TextInputType.emailAddress,
                         ),
                       ),
                       Padding(
@@ -432,7 +453,11 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
                           child: Text("Enviar"),
                           onPressed: () {
                             if (_formKey.currentState.validate()) {
-                              _formKey.currentState.save();
+                              //_formKey.currentState.save();
+
+                             sendInvite(this._emailController.text, widget.company.id);
+
+
                               Navigator.of(context).pop();
                             }
                           },
@@ -448,10 +473,11 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
   }
 
   void moveTo() {
+    Company company;
     Navigator.push<dynamic>(
       context,
       MaterialPageRoute<dynamic>(
-        builder: (BuildContext context) => BusinessInfoScreen(),
+        builder: (BuildContext context) => BusinessInfoScreen(company),
       ),
     );
   }
@@ -469,7 +495,7 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
                     Text(
-                      Category.memberList[index].title,
+                      widget.company.users[index].email,
                       style: TextStyle(
                           fontSize: 16.0,),
                     ),
@@ -529,5 +555,28 @@ class _BusinessInfoScreenState extends State<BusinessInfoScreen>
         ),
       ),
     );
+  }
+
+  void sendInvite(String email, int idEmpresa) async {
+
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.get("token");
+
+    var _headers = {"Content-type" : "application/json", "Authorization" : "Bearer $token"};
+    Map params = {
+      "query":'mutation{InviteForCompany('
+          'id: $idEmpresa,'
+          'email: "$email",'
+          'include: true'
+          '){id, email}}'
+    };
+
+    var _body = json.encode(params);
+    http.post(baseUrl, body: _body, headers: _headers).
+    then((response) async {
+      Map mapResponse = json.decode(response.body);
+    }).catchError((e) {
+
+    });
   }
 }

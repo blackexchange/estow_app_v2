@@ -1,10 +1,19 @@
+import 'package:global_configuration/global_configuration.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
 import 'design_course_app_theme.dart';
-import 'models/business.dart';
+import '../models/business.dart';
 import '../main.dart';
 import 'package:flutter/material.dart';
 
+import 'dart:convert';
+import 'package:flutter/cupertino.dart';
+import 'package:http/http.dart' as http;
+
+
 class PopularBusinessListView extends StatefulWidget {
   const PopularBusinessListView({Key key, this.callBack}) : super(key: key);
+
 
   final Function callBack;
   @override
@@ -16,11 +25,37 @@ class _PopularBusinessListViewState extends State<PopularBusinessListView>
   AnimationController animationController;
   @override
   void initState() {
+
     animationController = AnimationController(
         duration: const Duration(milliseconds: 2000), vsync: this);
     super.initState();
   }
 
+  Future  <Business> _loadBusiness() async{
+
+    SharedPreferences sharedPreferences = await SharedPreferences.getInstance();
+    var token = sharedPreferences.get("token");
+    var _headers = {"Content-type" : "application/json", "Authorization" : "Bearer $token"};
+    Map params = {
+      "query":'query{Companies(include_inactive: true){'
+          'id,name, cnpj, users{id, email}, '
+          'units {id, name, quantity, metric}}}'
+    };
+    var _body = json.encode(params);
+
+    String baseUrl = GlobalConfiguration().getString('base_url');
+    var response = await http.post(baseUrl, body: _body, headers: _headers);
+
+      Map mapResponse = json.decode(response.body);
+      if (response.statusCode == 200){
+        Business business = Business.fromJson(mapResponse["data"]);
+        return business;
+        }
+      else {
+        return null;
+      }
+
+  }
   Future<bool> getData() async {
     await Future<dynamic>.delayed(const Duration(milliseconds: 200));
     return true;
@@ -30,9 +65,9 @@ class _PopularBusinessListViewState extends State<PopularBusinessListView>
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 8),
-      child: FutureBuilder<bool>(
-        future: getData(),
-        builder: (BuildContext context, AsyncSnapshot<bool> snapshot) {
+      child: FutureBuilder<Business>(
+        future: _loadBusiness(),
+        builder: (BuildContext context, AsyncSnapshot<Business> snapshot) {
           if (!snapshot.hasData) {
             return const SizedBox();
           } else {
@@ -40,12 +75,12 @@ class _PopularBusinessListViewState extends State<PopularBusinessListView>
               padding: const EdgeInsets.all(8),
               physics: const BouncingScrollPhysics(),
               scrollDirection: Axis.vertical,
-              children: List<Widget>.generate(
-                Business.popularBusinessList.length,
-                (int index) {
-                  final int count = Business.popularBusinessList.length;
+              children:  List<Widget>.generate(
+                snapshot.data.companies.length,
+                    (int index) {
+                  final int count = snapshot.data.companies.length;
                   final Animation<double> animation =
-                      Tween<double>(begin: 0.0, end: 1.0).animate(
+                  Tween<double>(begin: 0.0, end: 1.0).animate(
                     CurvedAnimation(
                       parent: animationController,
                       curve: Interval((1 / count) * index, 1.0,
@@ -55,9 +90,9 @@ class _PopularBusinessListViewState extends State<PopularBusinessListView>
                   animationController.forward();
                   return BusinessView(
                     callback: () {
-                      widget.callBack();
+                      widget.callBack(snapshot.data.companies[index]);
                     },
-                    business: Business.popularBusinessList[index],
+                    company: snapshot.data.companies[index],
                     animation: animation,
                     animationController: animationController,
                   );
@@ -80,14 +115,14 @@ class _PopularBusinessListViewState extends State<PopularBusinessListView>
 class BusinessView extends StatelessWidget {
   const BusinessView(
       {Key key,
-      this.business,
-      this.animationController,
-      this.animation,
-      this.callback})
+        this.company,
+        this.animationController,
+        this.animation,
+        this.callback})
       : super(key: key);
 
   final VoidCallback callback;
-  final Business business;
+  final Company company;
   final AnimationController animationController;
   final Animation<dynamic> animation;
 
@@ -133,7 +168,7 @@ class BusinessView extends StatelessWidget {
                                             padding: const EdgeInsets.only(
                                                 top: 16, left: 16, right: 16),
                                             child: Text(
-                                              business.name,
+                                              company.name,
                                               textAlign: TextAlign.left,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.w600,
@@ -152,13 +187,13 @@ class BusinessView extends StatelessWidget {
                                                 bottom: 8),
                                             child: Row(
                                               mainAxisAlignment:
-                                                  MainAxisAlignment
-                                                      .spaceBetween,
+                                              MainAxisAlignment
+                                                  .spaceBetween,
                                               crossAxisAlignment:
-                                                  CrossAxisAlignment.center,
+                                              CrossAxisAlignment.center,
                                               children: <Widget>[
                                                 Text(
-                                                  '${business.countMembers} membros',
+                                                  '2',
                                                   textAlign: TextAlign.left,
                                                   style: TextStyle(
                                                     fontWeight: FontWeight.w200,
@@ -172,24 +207,24 @@ class BusinessView extends StatelessWidget {
                                                   child: Row(
                                                     children: <Widget>[
                                                       Text(
-                                                        '${business.rating}',
+                                                        '4',
                                                         textAlign:
-                                                            TextAlign.left,
+                                                        TextAlign.left,
                                                         style: TextStyle(
                                                           fontWeight:
-                                                              FontWeight.w200,
+                                                          FontWeight.w200,
                                                           fontSize: 18,
                                                           letterSpacing: 0.27,
                                                           color:
-                                                              DesignCourseAppTheme
-                                                                  .grey,
+                                                          DesignCourseAppTheme
+                                                              .grey,
                                                         ),
                                                       ),
                                                       Icon(
                                                         Icons.star,
                                                         color:
-                                                            DesignCourseAppTheme
-                                                                .nearlyBlue,
+                                                        DesignCourseAppTheme
+                                                            .nearlyBlue,
                                                         size: 20,
                                                       ),
                                                     ],
@@ -218,11 +253,11 @@ class BusinessView extends StatelessWidget {
                     Container(
                       child: Padding(
                         padding:
-                            const EdgeInsets.only(top: 24, right: 16, left: 16),
+                        const EdgeInsets.only(top: 24, right: 16, left: 16),
                         child: Container(
                           decoration: BoxDecoration(
                             borderRadius:
-                                const BorderRadius.all(Radius.circular(16.0)),
+                            const BorderRadius.all(Radius.circular(16.0)),
                             boxShadow: <BoxShadow>[
                               BoxShadow(
                                   color: DesignCourseAppTheme.grey
@@ -233,10 +268,10 @@ class BusinessView extends StatelessWidget {
                           ),
                           child: ClipRRect(
                             borderRadius:
-                                const BorderRadius.all(Radius.circular(16.0)),
+                            const BorderRadius.all(Radius.circular(16.0)),
                             child: AspectRatio(
                                 aspectRatio: 1.28,
-                                child: Image.asset(business.imagePath)),
+                                child: Image.asset('assets/design_course/interFace1.png')),
                           ),
                         ),
                       ),
@@ -250,4 +285,5 @@ class BusinessView extends StatelessWidget {
       },
     );
   }
+
 }

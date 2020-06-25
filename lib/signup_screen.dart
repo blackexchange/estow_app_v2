@@ -1,7 +1,7 @@
 import 'dart:async';
 
+import 'package:estow_app/models/usuario.dart';
 import 'package:flutter/material.dart';
-import 'package:estow_app/model/user.dart';
 import 'package:scoped_model/scoped_model.dart';
 
 class SignUpScreen extends StatefulWidget {
@@ -27,7 +27,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
           title: Text("Criar Conta"),
           centerTitle: true,
         ),
-        body: ScopedModelDescendant<User>(
+        body: ScopedModelDescendant<Usuario>(
           builder: (context, child, model){
             if(model.isLoading)
               return Center(child: CircularProgressIndicator(),);

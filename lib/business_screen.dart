@@ -1,4 +1,5 @@
 import 'package:estow_app/app_theme.dart';
+import 'package:estow_app/business/models/business_model.dart';
 import 'package:flutter/material.dart';
 
 class BusinessScreen extends StatefulWidget {
@@ -7,8 +8,10 @@ class BusinessScreen extends StatefulWidget {
 }
 
 class _BusinessScreenState extends State<BusinessScreen> {
+
   @override
   void initState() {
+
     super.initState();
   }
 

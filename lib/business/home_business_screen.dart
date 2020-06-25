@@ -3,47 +3,56 @@ import 'package:estow_app/business/business_info_screen.dart';
 import 'package:estow_app/business/popular_business_list_view.dart';
 import 'package:estow_app/main.dart';
 import 'package:flutter/material.dart';
+import 'package:scoped_model/scoped_model.dart';
 import 'business_form.dart';
 import 'design_course_app_theme.dart';
+import '../models/business.dart';
 
 class HomeBusinessScreen extends StatefulWidget {
   @override
   _HomeBusinessScreenState createState() => _HomeBusinessScreenState();
+
 }
 
 class _HomeBusinessScreenState extends State<HomeBusinessScreen> {
   CategoryType categoryType = CategoryType.ui;
+  Company company = Company();
 
   @override
   Widget build(BuildContext context) {
     return Container(
       color: DesignCourseAppTheme.nearlyWhite,
       child: Scaffold(
-        backgroundColor: Colors.transparent,
-        body: Column(
-          children: <Widget>[
-            SizedBox(
-              height: MediaQuery.of(context).padding.top,
-            ),
-            getAppBarUI(),
-            Expanded(
-              child: SingleChildScrollView(
-                child: Container(
-                  height: MediaQuery.of(context).size.height,
-                  child: Column(
-                    children: <Widget>[
-                      getSearchBarUI(),
-                      // getCategoryUI(),
-                      Flexible(
-                        child: getPopularBusinessUI(),
-                      ),
-                    ],
+          backgroundColor: Colors.transparent,
+          body: ScopedModelDescendant<Business>(
+              builder: (context, child, model) {
+              return Column(
+                children: <Widget>[
+                  //Text(model.companies[1].name),
+                  SizedBox(
+                    height: MediaQuery.of(context).padding.top,
                   ),
-                ),
-              ),
-            ),
-          ],
-        ),
+                  getAppBarUI(),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Container(
+                        height: MediaQuery.of(context).size.height,
+                        child: Column(
+                          children: <Widget>[
+                            getSearchBarUI(),
+                            // getCategoryUI(),
+                            Flexible(
+                              child: getPopularBusinessUI(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+          )
       ),
     );
   }
@@ -91,8 +100,8 @@ class _HomeBusinessScreenState extends State<HomeBusinessScreen> {
           height: 16,
         ),
         BusinessListView(
-          callBack: () {
-            moveTo();
+          callBack: (Company company) {
+            moveTo(company);
           },
         ),
       ],
@@ -118,8 +127,9 @@ class _HomeBusinessScreenState extends State<HomeBusinessScreen> {
           ),
           Flexible(
             child: PopularBusinessListView(
-              callBack: () {
-                moveTo();
+
+              callBack: (Company company) {
+                moveTo(company);
               },
             ),
           )
@@ -128,15 +138,18 @@ class _HomeBusinessScreenState extends State<HomeBusinessScreen> {
     );
   }
 
-  void moveTo() {
+  void moveTo(Company companySelected) {
+
+    setState(() {
+      company = companySelected ;
+    });
+
     Navigator.push<dynamic>(
       context,
       MaterialPageRoute<dynamic>(
-        builder: (BuildContext context) => BusinessInfoScreen(),
+        builder: (BuildContext context) => BusinessInfoScreen(company),
       ),
     );
-
-
   }
 
   Widget getButtonUI(CategoryType categoryTypeData, bool isSelected) {
@@ -244,7 +257,6 @@ class _HomeBusinessScreenState extends State<HomeBusinessScreen> {
                         ),
                       ),
                     ),
-
                   ],
                 ),
               ),
@@ -281,23 +293,20 @@ class _HomeBusinessScreenState extends State<HomeBusinessScreen> {
               ],
             ),
           ),
-
           Container(
-
-            width: 60,
-            height: 60,
-            child: InkWell(
-              child:Icon(Icons.add),
-              onTap: (){
-                Navigator.push<dynamic>(
-                  context,
-                  MaterialPageRoute<dynamic>(
-                    builder: (BuildContext context) => BusinessForm(),
-                  ),
-                );
-              },
-            )
-          )
+              width: 60,
+              height: 60,
+              child: InkWell(
+                child: Icon(Icons.add),
+                onTap: () {
+                  Navigator.push<dynamic>(
+                    context,
+                    MaterialPageRoute<dynamic>(
+                      builder: (BuildContext context) => BusinessForm(),
+                    ),
+                  );
+                },
+              ))
         ],
       ),
     );

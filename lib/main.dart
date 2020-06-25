@@ -2,13 +2,17 @@ import 'dart:io';
 import 'package:estow_app/app_theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:global_configuration/global_configuration.dart';
 import 'package:scoped_model/scoped_model.dart';
-import 'business/models/business.dart';
-import 'model/user.dart';
+import './models/business.dart';
+import './models/usuario.dart';
 import 'navigation_home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await GlobalConfiguration().loadFromAsset("configurations");
+
   await SystemChrome.setPreferredOrientations(<DeviceOrientation>[
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown
@@ -28,12 +32,12 @@ class MyApp extends StatelessWidget {
       systemNavigationBarIconBrightness: Brightness.dark,
     ));
 
-    return ScopedModel<User>(
-        model: User(),
+    return ScopedModel<Usuario>(
+        model: Usuario(),
         child: ScopedModel<Business>(
             model: Business(),
             child: MaterialApp(
-              title: 'Flutter UI',
+              title: 'ESTOW WorkForce',
               debugShowCheckedModeBanner: false,
               theme: ThemeData(
                 primarySwatch: Colors.blue,

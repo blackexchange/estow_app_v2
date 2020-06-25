@@ -1,11 +1,13 @@
 import 'package:estow_app/business/design_course_app_theme.dart';
-import 'file:///D:/flutter_prj/Best-Flutter-UI-Templates/estow_app/lib/scales/models/scale.dart';
-import 'package:estow_app/main.dart';
+import 'package:estow_app/models/business.dart';
+import './models/business.dart';
+import 'package:estow_app/scales/models/scale.dart';
 import 'package:flutter/material.dart';
 
 class ScaleListView extends StatefulWidget {
-  const ScaleListView({Key key, this.callBack}) : super(key: key);
+  const ScaleListView({Key key, this.callBack, this.company}) : super(key: key);
 
+  final Company company;
   final Function callBack;
   @override
   _ScaleListViewState createState() => _ScaleListViewState();
@@ -43,12 +45,12 @@ class _ScaleListViewState extends State<ScaleListView>
               return ListView.builder(
                 padding: const EdgeInsets.only(
                     top: 0, bottom: 0, right: 16, left: 16),
-                itemCount: Scale.scaleList.length,
+                itemCount: widget.company.units.length,
                 scrollDirection: Axis.horizontal,
                 itemBuilder: (BuildContext context, int index) {
-                  final int count = Scale.scaleList.length > 10
+                  final int count = widget.company.units.length > 10
                       ? 10
-                      : Scale.scaleList.length;
+                      : widget.company.units.length;
                   final Animation<double> animation =
                   Tween<double>(begin: 0.0, end: 1.0).animate(
                       CurvedAnimation(
@@ -58,7 +60,7 @@ class _ScaleListViewState extends State<ScaleListView>
                   animationController.forward();
 
                   return ScaleView(
-                    scale: Scale.scaleList[index],
+                    units: widget.company.units[index],
                     animation: animation,
                     animationController: animationController,
                     callback: () {
@@ -78,14 +80,14 @@ class _ScaleListViewState extends State<ScaleListView>
 class ScaleView extends StatelessWidget {
   const ScaleView(
       {Key key,
-        this.scale,
+        this.units,
         this.animationController,
         this.animation,
         this.callback})
       : super(key: key);
 
   final VoidCallback callback;
-  final Scale scale;
+  final Unit units;
   final AnimationController animationController;
   final Animation<dynamic> animation;
 
@@ -94,6 +96,7 @@ class ScaleView extends StatelessWidget {
     return AnimatedBuilder(
       animation: animationController,
       builder: (BuildContext context, Widget child) {
+
         return FadeTransition(
           opacity: animation,
           child: Transform(
@@ -137,11 +140,26 @@ class ScaleView extends StatelessWidget {
                                             padding:
                                             const EdgeInsets.only(top: 16),
                                             child: Text(
-                                              scale.title,
+                                              units.name,
                                               textAlign: TextAlign.left,
                                               style: TextStyle(
                                                 fontWeight: FontWeight.w600,
                                                 fontSize: 16,
+                                                letterSpacing: 0.27,
+                                                color: DesignCourseAppTheme
+                                                    .darkerText,
+                                              ),
+                                            ),
+                                          ),
+                                          Padding(
+                                            padding:
+                                            const EdgeInsets.only(top: 16),
+                                            child: Text(
+                                              "Quantidade: ${units.quantity}",
+                                              textAlign: TextAlign.left,
+                                              style: TextStyle(
+                                                fontWeight: FontWeight.w600,
+                                                fontSize: 12,
                                                 letterSpacing: 0.27,
                                                 color: DesignCourseAppTheme
                                                     .darkerText,
